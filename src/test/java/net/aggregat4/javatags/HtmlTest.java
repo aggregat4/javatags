@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
+import static net.aggregat4.javatags.TypedAttributes.TypedAttributeType.*;
 import static net.aggregat4.javatags.TypedAttributes.*;
 import static net.aggregat4.javatags.Tags.*;
 import static org.junit.Assert.assertEquals;
@@ -36,9 +37,14 @@ public class HtmlTest {
                     body(
                         h1("header1"),
                         // not sure what approach I like better
-                        p(id("foo")).content(text("para1")),
+                        p(id("foo")).content(
+                            text("para1")),
+                        // this is new, with a singular utility method and some generics we have a type safe way to make generic attributes
+                        // is this convenient enough?
+                        p(attr(id, "foo")).content(
+                            text("para1")),
                         p("para2").attr(id("bar")),
-                        p(attr(id("baz")), "para3")
+                        p(attrs(id("baz")), "para3")
                     ))));
     }
 
