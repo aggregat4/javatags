@@ -1,6 +1,6 @@
 package net.aggregat4.javatags;
 
-import static net.aggregat4.javatags.AttributeType.*;
+import static net.aggregat4.javatags.TypedAttributes.TypedAttributeType.*;
 import static net.aggregat4.javatags.TagType.Constants.*;
 
 public enum TagType {
@@ -15,10 +15,10 @@ public enum TagType {
 
     private String name;
     private boolean contentAllowed;
-    private AttributeType[] allowedAttributeTypes;
+    private TypedAttributes.TypedAttributeType[] allowedAttributeTypes;
     private boolean closingTag;
 
-    TagType(String name, boolean contentAllowed, AttributeType[] allowedAttributeTypes, boolean closingTag) {
+    TagType(String name, boolean contentAllowed, TypedAttributes.TypedAttributeType[] allowedAttributeTypes, boolean closingTag) {
         this.name = name;
         this.contentAllowed = contentAllowed;
         this.allowedAttributeTypes = allowedAttributeTypes;
@@ -33,7 +33,7 @@ public enum TagType {
         return contentAllowed;
     }
 
-    public AttributeType[] getAllowedAttributeTypes() {
+    public TypedAttributes.TypedAttributeType[] getAllowedAttributeTypes() {
         return allowedAttributeTypes;
     }
 
@@ -43,10 +43,28 @@ public enum TagType {
 
     static class Constants {
         public static final AttributeType[] NO_ATTRIBUTES_ALLOWED = new AttributeType[0];
+
         // http://www.w3.org/TR/html5/dom.html#global-attributes and http://www.w3.org/TR/html5/dom.html#htmlelement
-        public static final AttributeType[] STANDARD_HTML_ATTRIBUTES = new AttributeType[] {
-            id, classAttr, style, titleAttr, lang, translate, dir,
-            hidden, tabIndex, accessKey, accessKeyLabel, contentEditable, isContentEditable, spellcheck};
+//        public static final AttributeType[] STANDARD_HTML_ATTRIBUTES = new AttributeType[] {
+//            id, classAttr, style, titleAttr, lang, translate, dir,
+//            hidden, tabIndex, accessKey, accessKeyLabel, contentEditable,
+//            isContentEditable, spellcheck};
+        public static final TypedAttributes.TypedAttributeType[] STANDARD_HTML_ATTRIBUTES = new TypedAttributes.TypedAttributeType[]{
+            id,
+            classAttr,
+            style,
+            titleAttr,
+            lang,
+            translate,
+            dir,
+            hidden,
+            tabIndex,
+            accessKey,
+            accessKeyLabel,
+            contentEditable,
+            isContentEditable,
+            spellcheck };
+        // Aliases for readability
         public static final boolean CONTENT_ALLOWED = true;
         public static final boolean NO_CONTENT_ALLOWED = false;
         public static final boolean CLOSING_TAG = true;

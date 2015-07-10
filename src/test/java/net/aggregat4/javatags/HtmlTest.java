@@ -4,7 +4,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static net.aggregat4.javatags.Attributes.*;
+import static net.aggregat4.javatags.TypedAttributes.*;
 import static net.aggregat4.javatags.Tags.*;
 import static org.junit.Assert.assertEquals;
 
