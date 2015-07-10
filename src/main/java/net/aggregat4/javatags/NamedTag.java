@@ -4,15 +4,15 @@ import java.io.IOException;
 
 class NamedTag implements Tag {
     private TagType tagType;
-    private TypedAttributes.TypedAttribute[] attributes;
+    private Attributes.Attribute[] attributes;
     private Tag[] children = new Tag[]{};
 
-    public NamedTag(TagType tagType, TypedAttributes.TypedAttribute[] attributes) {
+    public NamedTag(TagType tagType, Attributes.Attribute[] attributes) {
         this.tagType = tagType;
         this.attributes = validateAttributes(attributes);
     }
 
-    public NamedTag(TagType tagType, TypedAttributes.TypedAttribute[] attributes, Tag[] children) {
+    public NamedTag(TagType tagType, Attributes.Attribute[] attributes, Tag[] children) {
         this(tagType, attributes);
         if (children != null) {
             this.children = validateChildren(children);
@@ -27,10 +27,10 @@ class NamedTag implements Tag {
         return children;
     }
 
-    private TypedAttributes.TypedAttribute[] validateAttributes(TypedAttributes.TypedAttribute[] attributes) {
-        for (TypedAttributes.TypedAttribute attr : attributes) {
+    private Attributes.Attribute[] validateAttributes(Attributes.Attribute[] attributes) {
+        for (Attributes.Attribute attr : attributes) {
             boolean allowed = false;
-            for (TypedAttributes.TypedAttributeType allowedAttributeType : tagType.getAllowedAttributeTypes()) {
+            for (Attributes.AttributeType allowedAttributeType : tagType.getAllowedAttributeTypes()) {
                 if (allowedAttributeType == attr.getType()) {
                     allowed = true;
                     break;
@@ -53,7 +53,7 @@ class NamedTag implements Tag {
         return this;
     }
 
-    public NamedTag attr(TypedAttributes.TypedAttribute ... attributes) {
+    public NamedTag attr(Attributes.Attribute... attributes) {
         this.attributes = validateAttributes(attributes);
         return this;
     }
@@ -61,7 +61,7 @@ class NamedTag implements Tag {
     protected void renderOpeningTag(Appendable appendable) throws IOException {
         appendable.append("<");
         appendable.append(tagType.getName());
-        for (TypedAttributes.TypedAttribute attr : attributes) {
+        for (Attributes.Attribute attr : attributes) {
             attr.render(appendable);
         }
         appendable.append(">");

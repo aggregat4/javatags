@@ -4,8 +4,8 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-import static net.aggregat4.javatags.TypedAttributes.TypedAttributeType.*;
-import static net.aggregat4.javatags.TypedAttributes.*;
+import static net.aggregat4.javatags.Attributes.AttributeType.*;
+import static net.aggregat4.javatags.Attributes.*;
 import static net.aggregat4.javatags.Tags.*;
 import static org.junit.Assert.assertEquals;
 
@@ -29,7 +29,7 @@ public class HtmlTest {
     public void htmlWithTagsAndAttributes() throws IOException {
         assertEquals(
             "<html><head><title>foo</title></head><body>" +
-                "<h1>header1</h1><p id=\"foo\">para1</p><p id=\"bar\">para2</p><p id=\"baz\">para3</p></body></html>",
+                "<h1>header1</h1><p id=\"foo\">para1</p><p id=\"foo\">para1</p><p id=\"bar\">para2</p><p id=\"baz\">para3</p></body></html>",
             TagUtils.toString(
                 html(
                     head(

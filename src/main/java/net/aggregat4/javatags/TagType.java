@@ -1,6 +1,6 @@
 package net.aggregat4.javatags;
 
-import static net.aggregat4.javatags.TypedAttributes.TypedAttributeType.*;
+import static net.aggregat4.javatags.Attributes.AttributeType.*;
 import static net.aggregat4.javatags.TagType.Constants.*;
 
 public enum TagType {
@@ -15,10 +15,10 @@ public enum TagType {
 
     private String name;
     private boolean contentAllowed;
-    private TypedAttributes.TypedAttributeType[] allowedAttributeTypes;
+    private Attributes.AttributeType[] allowedAttributeTypes;
     private boolean closingTag;
 
-    TagType(String name, boolean contentAllowed, TypedAttributes.TypedAttributeType[] allowedAttributeTypes, boolean closingTag) {
+    TagType(String name, boolean contentAllowed, Attributes.AttributeType[] allowedAttributeTypes, boolean closingTag) {
         this.name = name;
         this.contentAllowed = contentAllowed;
         this.allowedAttributeTypes = allowedAttributeTypes;
@@ -33,7 +33,7 @@ public enum TagType {
         return contentAllowed;
     }
 
-    public TypedAttributes.TypedAttributeType[] getAllowedAttributeTypes() {
+    public Attributes.AttributeType[] getAllowedAttributeTypes() {
         return allowedAttributeTypes;
     }
 
@@ -42,14 +42,14 @@ public enum TagType {
     }
 
     static class Constants {
-        public static final AttributeType[] NO_ATTRIBUTES_ALLOWED = new AttributeType[0];
+        public static final Attributes.AttributeType[] NO_ATTRIBUTES_ALLOWED = new Attributes.AttributeType[0];
 
         // http://www.w3.org/TR/html5/dom.html#global-attributes and http://www.w3.org/TR/html5/dom.html#htmlelement
 //        public static final AttributeType[] STANDARD_HTML_ATTRIBUTES = new AttributeType[] {
 //            id, classAttr, style, titleAttr, lang, translate, dir,
 //            hidden, tabIndex, accessKey, accessKeyLabel, contentEditable,
 //            isContentEditable, spellcheck};
-        public static final TypedAttributes.TypedAttributeType[] STANDARD_HTML_ATTRIBUTES = new TypedAttributes.TypedAttributeType[]{
+        public static final Attributes.AttributeType[] STANDARD_HTML_ATTRIBUTES = new Attributes.AttributeType[]{
             id,
             classAttr,
             style,
