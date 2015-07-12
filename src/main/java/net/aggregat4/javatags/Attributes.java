@@ -1,134 +1,166 @@
 package net.aggregat4.javatags;
 
 import java.io.IOException;
-import java.util.Objects;
+import java.util.*;
 
 public class Attributes {
 
-  public interface AttributeType<ValueType> {
-    boolean isNullable();
-    String getName();
+    public interface AttributeType<ValueType> {
+        boolean isNullable();
 
-    AttributeType<String>
-        id = strAttr("id"),
-        classAttr = strAttr("class"),
-        style = strAttr("style"),
-        titleAttr = strAttr("title"),
-        lang = strAttr("lang"),
-        translate = strAttr("translate", "", "yes", "no"), // TODO runtime check for allowedValues
-        dir = strAttr("dir"),
-        hidden = strAttr("hidden"),
-        accessKey = strAttr("accessKey"),
-        accessKeyLabel = strAttr("accessKeyLabel"),
-        contentEditable = strAttr("contentEditable"),
-        spellcheck = strAttr("spellcheck")
-    ;
+        String getName();
 
-    AttributeType<Boolean>
-      isContentEditable = boolAttr("isContentEditable")
-    ;
+        Optional<ValueType[]> getAllowedValues();
 
-    AttributeType<Long>
-        tabIndex = longAttr("tabIndex")
-    ;
-  }
+        void render(ValueType value, Appendable appendable) throws IOException;
 
-  // Helper methods to easily construct attributes without the generics noise
-  private static AttributeType<String> strAttr(String name, String ... allowedValues) {
-    if (allowedValues != null) {
-      return new DefaultAttributeType<String>(false, name, allowedValues);
-    } else {
-      return new DefaultAttributeType<String>(false, name);
-    }
-  }
-  private static AttributeType<String> strAttrNullable(String name, String ... allowedValues) {
-    if (allowedValues != null) {
-      return new DefaultAttributeType<String>(true, name, allowedValues);
-    } else {
-      return new DefaultAttributeType<String>(true, name);
-    }
-  }
-  private static AttributeType<Boolean> boolAttr(String name) {
-    return new DefaultAttributeType<Boolean>(false, name);
-  }
-  private static AttributeType<Boolean> boolAttrNullable(String name) {
-    return new DefaultAttributeType<Boolean>(true, name);
-  }
-  private static AttributeType<Long> longAttr(String name) {
-    return new DefaultAttributeType<Long>(false, name);
-  }
-  private static AttributeType<Long> longAttrNullable(String name) {
-    return new DefaultAttributeType<Long>(true, name);
-  }
+        AttributeType<String>
+            id = strAttr("id"),
+            classAttr = strAttr("class"),
+            style = strAttr("style"),
+            titleAttr = strAttr("title"),
+            lang = strAttr("lang"),
+            translate = strAttr("translate", "", "yes", "no"),
+            dir = strAttr("dir"),
+            hidden = strAttr("hidden"),
+            accessKey = strAttr("accessKey"),
+            accessKeyLabel = strAttr("accessKeyLabel"),
+            contentEditable = strAttr("contentEditable"),
+            spellcheck = strAttr("spellcheck");
 
-  private static class DefaultAttributeType<ValueType> implements AttributeType<ValueType> {
-    private boolean nullable;
-    private String name;
-    private ValueType [] allowedValues;
+        AttributeType<Boolean>
+            isContentEditable = boolAttr("isContentEditable");
 
-    public DefaultAttributeType(boolean nullable, String name) {
-      this.nullable = nullable;
-      this.name = Objects.requireNonNull(name);
+        AttributeType<Long>
+            tabIndex = longAttr("tabIndex");
     }
 
-    public DefaultAttributeType(boolean nullable, String name, ValueType[] allowedValues) {
-      this(nullable, name);
-      this.allowedValues = Objects.requireNonNull(allowedValues);
+    // Helper methods to easily construct attributes without the generics noise
+    private static AttributeType<String> strAttr(String name, String... allowedValues) {
+        return new StringAttributeType<>(false, name, Optional.ofNullable(allowedValues.length == 0 ? null : allowedValues));
     }
 
-    public boolean isNullable() {
-      return nullable;
+    private static AttributeType<Boolean> boolAttr(String name, Boolean... allowedValues) {
+        return new BooleanAttributeType<>(false, name, Optional.ofNullable(allowedValues.length == 0 ? null : allowedValues));
     }
 
-    public String getName() {
-      return name;
-    }
-  }
-
-  public static class Attribute<AT extends AttributeType<ValueType>, ValueType> {
-    private AT type;
-    private ValueType value;
-
-    public Attribute(AT type, ValueType value) {
-      this.type = Objects.requireNonNull(type);
-      if (! type.isNullable()) {
-        Objects.requireNonNull(
-            value,
-            String.format("Value can not be null since the attribute '%s' is non-nullable",
-                type.getName()));
-      }
-      this.value = value;
+    private static AttributeType<Long> longAttr(String name, Long... allowedValues) {
+        return new LongAttributeType<>(false, name, Optional.ofNullable(allowedValues.length == 0 ? null : allowedValues));
     }
 
-    public AT getType() {
-      return type;
+    abstract private static class DefaultAttributeType<ValueType> implements AttributeType<ValueType> {
+        private boolean nullable;
+        private String name;
+        private Optional<ValueType[]> allowedValues;
+
+        public DefaultAttributeType(boolean nullable, String name, Optional<ValueType[]> allowedValues) {
+            this.nullable = nullable;
+            this.name = Objects.requireNonNull(name);
+            this.allowedValues = Objects.requireNonNull(allowedValues);
+        }
+
+        public boolean isNullable() {
+            return nullable;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Optional<ValueType[]> getAllowedValues() {
+            return allowedValues;
+        }
     }
 
-    public ValueType getValue() {
-      return value;
+    private static class StringAttributeType<ValueType extends String> extends DefaultAttributeType<ValueType> {
+        public StringAttributeType(boolean nullable, java.lang.String name, Optional<ValueType[]> allowedValues) {
+            super(nullable, name, allowedValues);
+        }
+
+        public void render(String value, Appendable appendable) throws IOException {
+            appendable.append(" ").append(getName()).append("=").append("\"").append(value).append("\"");
+        }
     }
 
-    public void render(Appendable appendable) throws IOException {
-      appendable.append(" ");
-      appendable.append(type.getName());
-      if (value != null) {
-        appendable.append("=");
-        appendable.append("\"");
-        appendable.append(value.toString());
-        appendable.append("\"");
-      }
+    private static class LongAttributeType<ValueType extends Long> extends DefaultAttributeType<ValueType> {
+        public LongAttributeType(boolean nullable, java.lang.String name, Optional<ValueType[]> allowedValues) {
+            super(nullable, name, allowedValues);
+        }
+
+        public void render(Long value, Appendable appendable) throws IOException {
+            appendable.append(" ").append(getName()).append("=").append("\"").append(value.toString()).append("\"");
+        }
     }
-  }
 
-  // helper for vararg construction
-  public static Attribute[] attrs(Attribute... attributes) { return attributes; }
+    private static class BooleanAttributeType<ValueType extends Boolean> extends DefaultAttributeType<ValueType> {
+        public BooleanAttributeType(boolean nullable, java.lang.String name, Optional<ValueType[]> allowedValues) {
+            super(nullable, name, allowedValues);
+        }
 
-  public static <T> Attribute<AttributeType<T>, T> attr(AttributeType<T> type, T value) {
-    return new Attribute<AttributeType<T>, T>(type, value);
-  }
+        public void render(Boolean value, Appendable appendable) throws IOException {
+            if (value) {
+                appendable.append(" ").append(getName());
+            }
+        }
+    }
 
-  public static Attribute<AttributeType<String>, String> id(final String value) {
-    return new Attribute<AttributeType<String>, String>(AttributeType.id, value);
-  }
+    public static class Attribute<AT extends AttributeType<ValueType>, ValueType> {
+        private AT type;
+        private ValueType value;
+
+        public Attribute(AT type, ValueType value) {
+            this.type = Objects.requireNonNull(type);
+            if (!type.isNullable()) {
+                Objects.requireNonNull(
+                    value,
+                    String.format("Value can not be null since the attribute '%s' is non-nullable",
+                        type.getName()));
+                ensureValueIsAllowed(type, value);
+            }
+            this.value = value;
+        }
+
+        private void ensureValueIsAllowed(AT type, ValueType value) {
+            if (type.getAllowedValues().isPresent()) {
+                boolean valueIsAllowed = false;
+                for (ValueType allowedValue : type.getAllowedValues().get()) {
+                    if (allowedValue.equals(value)) {
+                        valueIsAllowed = true;
+                        break;
+                    }
+                }
+                if (!valueIsAllowed) {
+                    throw new IllegalArgumentException(String.format("The value '%s' is not allowed for " +
+                            "attribute '%s', allowed values are: %s", value, type.getName(),
+                        Arrays.asList(type.getAllowedValues().get())));
+                }
+            }
+        }
+
+        public AT getType() {
+            return type;
+        }
+
+        public ValueType getValue() {
+            return value;
+        }
+
+        public void render(Appendable appendable) throws IOException {
+            type.render(value, appendable);
+        }
+    }
+
+    // helper for vararg construction
+    public static Attribute[] attrs(Attribute... attributes) {
+        return attributes;
+    }
+
+    public static <T> Attribute<AttributeType<T>, T> attr(AttributeType<T> type, T value) {
+        return new Attribute<>(type, value);
+    }
+
+    public static Attribute<AttributeType<String>, String> id(final String value) {
+        return new Attribute<>(AttributeType.id, value);
+    }
 
 }
