@@ -95,15 +95,15 @@ public class Html5AttributeSpecTools {
         add("long");
         add("unsigned long");
         add("unsigned short");
-        add("double");
         add("unrestricted double");
+        add("double");
     }};
 
     private static AttributeType convert(AttributeDef attributeDef) {
         if (attributeDef.getType().equals("boolean")) {
-            return new BooleanAttributeType<>(attributeDef.getName(), Optional.empty());
+            return new BooleanAttributeType<>(attributeDef.getName());
         } else if (STRING_ATTRIBUTE_TYPES.contains(attributeDef.getType())){
-            return new StringAttributeType<>(attributeDef.getName(), Optional.empty());
+            return new StringAttributeType<>(attributeDef.getName());
         } else {
             System.out.println("Unhandled datatype: " + attributeDef.getType());
             return null;

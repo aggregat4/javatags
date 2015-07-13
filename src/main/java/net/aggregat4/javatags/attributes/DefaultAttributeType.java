@@ -5,19 +5,13 @@ import java.util.Optional;
 
 abstract class DefaultAttributeType<ValueType> implements AttributeType<ValueType> {
     private String name;
-    private Optional<ValueType[]> allowedValues;
 
-    public DefaultAttributeType(String name, Optional<ValueType[]> allowedValues) {
+    public DefaultAttributeType(String name) {
         this.name = Objects.requireNonNull(name);
-        this.allowedValues = Objects.requireNonNull(allowedValues);
     }
 
     public String getName() {
         return name;
-    }
-
-    public Optional<ValueType[]> getAllowedValues() {
-        return allowedValues;
     }
 
     @Override
@@ -37,7 +31,6 @@ abstract class DefaultAttributeType<ValueType> implements AttributeType<ValueTyp
     public String toString() {
         return "DefaultAttributeType{" +
             "name='" + name + '\'' +
-            ", allowedValues=" + allowedValues +
             '}';
     }
 }

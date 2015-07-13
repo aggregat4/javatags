@@ -1,6 +1,7 @@
 package net.aggregat4.javatags.tags;
 
 import net.aggregat4.javatags.attributes.AttributeType;
+
 import static net.aggregat4.javatags.attributes.Attributes.*;
 import static net.aggregat4.javatags.tags.TagType.Constants.*;
 

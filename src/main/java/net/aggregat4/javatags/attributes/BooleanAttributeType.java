@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.Optional;
 
 class BooleanAttributeType<ValueType extends Boolean> extends DefaultAttributeType<ValueType> {
-    public BooleanAttributeType(String name, Optional<ValueType[]> allowedValues) {
-        super(name, allowedValues);
+    public BooleanAttributeType(String name) {
+        super(name);
     }
 
     public void render(Boolean value, Appendable appendable) throws IOException {

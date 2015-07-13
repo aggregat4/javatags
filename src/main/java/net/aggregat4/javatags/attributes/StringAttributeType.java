@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.Optional;
 
 class StringAttributeType<ValueType extends String> extends DefaultAttributeType<ValueType> {
-    public StringAttributeType(String name, Optional<ValueType[]> allowedValues) {
-        super(name, allowedValues);
+    public StringAttributeType(String name) {
+        super(name);
     }
 
     public void render(String value, Appendable appendable) throws IOException {

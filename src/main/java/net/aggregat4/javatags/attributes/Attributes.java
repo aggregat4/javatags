@@ -150,12 +150,12 @@ public final class Attributes {
         typeMustMatch = boolAttr("typeMustMatch");
 
     // Helper methods to easily construct attributes without the generics noise
-    private static AttributeType<String> strAttr(String name, String... allowedValues) {
-        return new StringAttributeType<>(name, Optional.ofNullable(allowedValues.length == 0 ? null : allowedValues));
+    private static AttributeType<String> strAttr(String name) {
+        return new StringAttributeType<>(name);
     }
 
-    private static AttributeType<Boolean> boolAttr(String name, Boolean... allowedValues) {
-        return new BooleanAttributeType<>(name, Optional.ofNullable(allowedValues.length == 0 ? null : allowedValues));
+    private static AttributeType<Boolean> boolAttr(String name) {
+        return new BooleanAttributeType<>(name);
     }
 
     // helper for vararg construction
