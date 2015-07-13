@@ -68,8 +68,7 @@ public final class Attributes {
         lang = strAttr("lang"),
         length = strAttr("length"),
         longDesc = strAttr("longDesc"),
-        // the only attribute that collides with the booleans
-        loopAttrString = strAttr("loop"),
+        loopAttrString = strAttr("loop"), // the only attribute that collides with the booleans
         low = strAttr("low"),
         max = strAttr("max"),
         maxLength = strAttr("maxLength"),
