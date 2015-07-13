@@ -1,18 +1,21 @@
-package net.aggregat4.javatags;
+package net.aggregat4.javatags.tags;
+
+import net.aggregat4.javatags.attributes.Attribute;
+import net.aggregat4.javatags.attributes.AttributeType;
 
 import java.io.IOException;
 
-class NamedTag implements Tag {
+public class NamedTag implements Tag {
     private TagType tagType;
-    private Attributes.Attribute[] attributes;
+    private Attribute[] attributes;
     private Tag[] children = new Tag[]{};
 
-    public NamedTag(TagType tagType, Attributes.Attribute[] attributes) {
+    public NamedTag(TagType tagType, Attribute[] attributes) {
         this.tagType = tagType;
         this.attributes = validateAttributes(attributes);
     }
 
-    public NamedTag(TagType tagType, Attributes.Attribute[] attributes, Tag[] children) {
+    public NamedTag(TagType tagType, Attribute[] attributes, Tag[] children) {
         this(tagType, attributes);
         if (children != null) {
             this.children = validateChildren(children);
@@ -27,10 +30,10 @@ class NamedTag implements Tag {
         return children;
     }
 
-    private Attributes.Attribute[] validateAttributes(Attributes.Attribute[] attributes) {
-        for (Attributes.Attribute attr : attributes) {
+    private Attribute[] validateAttributes(Attribute[] attributes) {
+        for (Attribute attr : attributes) {
             boolean allowed = false;
-            for (Attributes.AttributeType allowedAttributeType : tagType.getAllowedAttributeTypes()) {
+            for (AttributeType allowedAttributeType : tagType.getAllowedAttributeTypes()) {
                 if (allowedAttributeType == attr.getType()) {
                     allowed = true;
                     break;
@@ -53,7 +56,7 @@ class NamedTag implements Tag {
         return this;
     }
 
-    public NamedTag attr(Attributes.Attribute... attributes) {
+    public NamedTag attr(Attribute... attributes) {
         this.attributes = validateAttributes(attributes);
         return this;
     }
@@ -61,7 +64,7 @@ class NamedTag implements Tag {
     protected void renderOpeningTag(Appendable appendable) throws IOException {
         appendable.append("<");
         appendable.append(tagType.getName());
-        for (Attributes.Attribute attr : attributes) {
+        for (Attribute attr : attributes) {
             attr.render(appendable);
         }
         appendable.append(">");

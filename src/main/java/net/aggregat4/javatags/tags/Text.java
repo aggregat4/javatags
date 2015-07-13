@@ -1,4 +1,4 @@
-package net.aggregat4.javatags;
+package net.aggregat4.javatags.tags;
 
 import java.io.IOException;
 

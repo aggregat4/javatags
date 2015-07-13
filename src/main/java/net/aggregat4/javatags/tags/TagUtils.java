@@ -1,7 +1,6 @@
-package net.aggregat4.javatags;
+package net.aggregat4.javatags.tags;
 
 import java.io.IOException;
-import java.io.StringWriter;
 
 public class TagUtils {
     public static String toString(Tag tag) {
