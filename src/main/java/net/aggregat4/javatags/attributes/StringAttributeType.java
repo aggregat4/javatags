@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 class StringAttributeType<ValueType extends String> extends DefaultAttributeType<ValueType> {
+
     public StringAttributeType(String name) {
         super(name);
     }
@@ -16,4 +17,5 @@ class StringAttributeType<ValueType extends String> extends DefaultAttributeType
     public String toString() {
         return "StringAttributeType{} " + super.toString();
     }
+
 }

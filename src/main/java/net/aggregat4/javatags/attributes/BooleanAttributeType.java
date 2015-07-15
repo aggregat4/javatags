@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 class BooleanAttributeType<ValueType extends Boolean> extends DefaultAttributeType<ValueType> {
+
     public BooleanAttributeType(String name) {
         super(name);
     }

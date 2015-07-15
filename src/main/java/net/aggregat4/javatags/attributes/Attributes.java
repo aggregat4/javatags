@@ -163,12 +163,18 @@ public final class Attributes {
         return attributes;
     }
 
+    // TODO some experiments to figure out a good API for creating attributes
+
     public static Attribute[] arr(Attribute... attributes) {
         return attributes;
     }
 
     public static <T> Attribute<AttributeType<T>, T> attr(AttributeType<T> type, T value) {
         return new Attribute<>(type, value);
+    }
+
+    public static Attribute<AttributeType<Boolean>, Boolean> attr(AttributeType<Boolean> type) {
+        return new Attribute<>(type, true);
     }
 
     public static <T> Attribute<AttributeType<T>, T> a(AttributeType<T> type, T value) {

@@ -29,7 +29,14 @@ public class HtmlTest {
     public void htmlWithTagsAndAttributes() throws IOException {
         assertEquals(
             "<html><head><title>foo</title></head><body>" +
-                "<h1>header1</h1><p id=\"foo\">para1</p><p id=\"foo\">para1</p><p id=\"bar\">para2</p><p id=\"baz\">para3</p><p id=\"qux\">para4</p></body></html>",
+                "<h1>header1</h1>" +
+                "<p id=\"foo\">para1</p>" +
+                "<p id=\"foo\">para1</p>" +
+                "<p id=\"bar\">para2</p>" +
+                "<p id=\"baz\">para3</p>" +
+                "<p id=\"qux\">para4</p>" +
+                "<p hidden>para5</p>" +
+                "</body></html>",
             TagUtils.toString(
                 html(
                     head(
@@ -48,7 +55,8 @@ public class HtmlTest {
                         // the following is compact a bit the best of both worlds (multiple attributes and multiple bits
                         // of content, but it is maybe also not so clear. better to go for clarity? Is clarity just
                         // using attr instead of a or is the arr also bad? Just use attrs?
-                        p(arr(a(id, "qux")), "para4")
+                        p(arr(a(id, "qux")), "para4"),
+                        p(attrs(attr(hidden)), "para5") // boolean attributes should not require a value, setting them is setting them to true
                     ))));
     }
 
