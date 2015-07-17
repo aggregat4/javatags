@@ -16,6 +16,9 @@ import java.util.stream.Stream;
 public class Html5AttributeSpecTools {
 
     /**
+     * TODO: redo this whole fucking thing: The IDL is useles, I need to parse the HTML, including all the textual like bits. Jezus.
+     * Perhaps I can extract the attributeList at the same time that I do the tags. What I don't know is how I will determine the attribute datatype...
+     *
      * Attributes:
      *
      * We need the IDL for getting the datatypes of the attributes.
