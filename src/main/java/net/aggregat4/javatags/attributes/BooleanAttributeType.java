@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.util.Optional;
 
 class BooleanAttributeType<ValueType extends Boolean> extends DefaultAttributeType<ValueType> {
-
     public BooleanAttributeType(String name) {
         super(name);
+    }
+
+    public BooleanAttributeType(String name, String tag) {
+        super(name, tag);
     }
 
     public void render(Boolean value, Appendable appendable) throws IOException {

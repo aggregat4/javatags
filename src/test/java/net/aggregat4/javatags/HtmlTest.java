@@ -6,7 +6,7 @@
 //
 //import java.io.IOException;
 //
-//import static net.aggregat4.javatags.tags.Tags.*;
+//import static net.aggregat4.javatags.tags.RawTag.*;
 //import static org.junit.Assert.assertEquals;
 //
 //public class HtmlTest {
