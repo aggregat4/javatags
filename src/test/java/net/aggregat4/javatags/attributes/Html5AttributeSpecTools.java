@@ -17,59 +17,65 @@ import java.util.stream.Stream;
 public class Html5AttributeSpecTools {
 
     /**
-     * TODO: redo this whole fucking thing: The IDL is useles, I need to parse the HTML, including all the textual like bits. Jezus.
-     * Perhaps I can extract the attributeList at the same time that I do the tags. What I don't know is how I will determine the attribute datatype...
-     *
-     * Attributes:
-     *
-     * We need the IDL for getting the datatypes of the rawAttributes.
-     *
-     * Attributes are not unique, that is to say: rawAttributes with the same name get reused in different contexts
-     * with different types. This means that I either need a more complicated model where attributetypes are scoped
-     * to certain html elements which would make my current approach for a fluid and easy api to generate HTML very
-     * hard to impossible to attain. Therefore I decided to just go for only 2 datatypes:
-     * - boolean rawAttributes are modeled as such since they need to be rendered differently, their booleaness is
-     *   expressed by them being present or not in an element. From my semi-scientific analysis of the boolean rawAttributes
-     *   there is not duplicate usage of elements with the same name but one time with and one time without being a
-     *   boolean.
-     * - everything else is a string attribute. We lose static type checking at compile time for the values.
-     *
-     * Elements:
-     *
-     * Then we need the html text to retrieve a listing of all the actual rawAttributes, the IDL is not complete
-     *
-     * Following idea:
-     * - find all dl with class = element
-     * - for each
-     * -- find the dt with content "Content rawAttributes"
-     * -- for all subsequent dd siblings:
-     * --- if it has "Global rawAttributes" in the text, ignore it
-     * ---
+     * TODO 20150803
+     * - I now know for each tag what attributes with what types are allowed
+     * - I need to add the closing tag information and the content allowed information to the tags (jsoup parsing)
+     * - based on that info I can then generate the necessary helper methods to construct the tags (allow children or not)
+     * - from the attributes info I can validate the attributes at runtime (allowed or not?)
+     * - with the attributes info I can generate the necessary attribute definitions and helper methods, here I just need to disambiguate when the type is different but the name the same
      */
 
     public static void main(String [] args) throws Exception {
         InputStream html5SpecInputStream = Html5AttributeSpecTools.class.getResourceAsStream("/HTML5.html");
         Document doc = Jsoup.parse(html5SpecInputStream, StandardCharsets.UTF_8.toString(), "http://");
 
-        Stream<AttributeType> globalAttributes = toAttributeType(getGlobalAttributeDefs(doc));
-        Stream<RawTag> tags = getTags(doc);
-//        System.out.println("element tags: " + tags.collect(Collectors.toList()));
-        Stream<AttributeType> elementAttributes = toAttributeType(getElementAttributeDefs(tags));
+        Stream<AttributeDef> globalAttributeDefs = getGlobalAttributeDefs(doc);
+        //Stream<AttributeType> globalAttributes = toAttributeType(globalAttributeDefs);
 
+        List<RawTag> tags = getTags(doc).collect(Collectors.toList());
+        Stream<AttributeDef> elementAttributeDefs = getElementAttributeDefs(tags.stream());
+        //Stream<AttributeType> elementAttributes = toAttributeType(elementAttributeDefs);
+
+        // tags now have all their normal attributes but need to get all the global attributes as well
+        List<AttributeDef> globalAttributeDefList = globalAttributeDefs.collect(Collectors.toList());
+        List<AttributeDef> elementAttributeDefList = elementAttributeDefs.collect(Collectors.toList());
+        Stream<RawTag> tagsWithGlobalAttributes = withGlobalAtributes(tags.stream(), globalAttributeDefList);
+//        System.out.println("tags: " + tagsWithGlobalAttributes.collect(Collectors.toList()));
+        tagsWithGlobalAttributes.forEach(rt -> System.out.println(rt));
+
+        globalAttributeDefList.stream().forEach(globalAttr -> System.out.println(globalAttr));
+        elementAttributeDefList.stream().forEach(elementAttr -> System.out.println(elementAttr));
+
+
+        // todo: merge attributedefs (or should we merge attributetypes?)
+
+        //List<AttributeType> mergedAttributes = merge(elementAttributes.collect(Collectors.toList()));
 //        System.out.println("element attributes: " + elementAttributes.collect(Collectors.toList()));
-
-        List<AttributeType> attributeTypes = Stream.concat(globalAttributes, elementAttributes).collect(Collectors.toList());
-
-        Stream<String> stringAttributeDeclarations = stringDeclarations(attributeTypes.stream());
-        String stringAttributeDeclarationBlock = String.join(",\n", stringAttributeDeclarations.sorted().collect(Collectors.toList()));
-
-        Stream<String> booleanAttributeDeclarations = booleanDeclarations(attributeTypes.stream());
-        String booleanAttributeDeclarationBlock = String.join(",\n", booleanAttributeDeclarations.sorted().collect(Collectors.toList()));
-
-        System.out.println(stringAttributeDeclarationBlock);
-        System.out.println(booleanAttributeDeclarationBlock);
+//
+//        List<AttributeType> attributeTypes = Stream.concat(globalAttributes, elementAttributes).collect(Collectors.toList());
+//
+//        Stream<String> stringAttributeDeclarations = stringDeclarations(attributeTypes.stream());
+//        String stringAttributeDeclarationBlock = String.join(",\n", stringAttributeDeclarations.sorted().collect(Collectors.toList()));
+//
+//        Stream<String> booleanAttributeDeclarations = booleanDeclarations(attributeTypes.stream());
+//        String booleanAttributeDeclarationBlock = String.join(",\n", booleanAttributeDeclarations.sorted().collect(Collectors.toList()));
+//
+//        System.out.println(stringAttributeDeclarationBlock);
+//        System.out.println(booleanAttributeDeclarationBlock);
 
     }
+
+    private static Stream<RawTag> withGlobalAtributes(Stream<RawTag> tags, List<AttributeDef> globalAttributeDefs) {
+        return tags.map(tag -> {
+            tag.addAllAttributes(globalAttributeDefs);
+            return tag;
+        });
+    }
+
+//    private static List<AttributeType> merge(List<AttributeType> attributeTypes) {
+//        // merge by name, but only if all other constraints are satisfied (what are those constraints? at least datatype?)
+//
+//    }
 
     private static Stream<AttributeDef> getElementAttributeDefs(Stream<RawTag> tags) {
         return tags.flatMap(Html5AttributeSpecTools::getElementAttributeDefs);
@@ -78,8 +84,11 @@ public class Html5AttributeSpecTools {
     private static Stream<AttributeDef> getElementAttributeDefs(RawTag tag) {
         Map<String, String> attributeTypes = parseAttributeDefs(tag.getIdl().orElseGet(() -> ""), tag.getTag(), false)
                 .collect(Collectors.toMap(AttributeDef::getName, AttributeDef::getType));
-        return tag.getAttributes().stream()
-                .map(attr -> new AttributeDef(attr, attributeTypes.getOrDefault(attr, "DOMString"), tag.getTag(), false));
+        List<AttributeDef> attributeDefs = tag.getAllowedAttributes().stream()
+                .map(attr -> new AttributeDef(attr, attributeTypes.getOrDefault(attr, "DOMString"), tag.getTag(), false))
+                .collect(Collectors.toList());
+        tag.addAllAttributes(attributeDefs);
+        return attributeDefs.stream();
     }
 
 //    private static void generateAttributeDeclarations(InputStream is) throws IOException {
@@ -128,7 +137,7 @@ public class Html5AttributeSpecTools {
         if (at.isGlobalAttribute()) {
             return String.format("\"%s\"", at.getName());
         } else {
-            return String.format("\"%s\", \"%s\"", at.getName(), at.getTags().get());
+            return String.format("\"%s\", \"%s\"", at.getName(), at.getTags());
         }
     }
 
@@ -172,13 +181,13 @@ public class Html5AttributeSpecTools {
                 return new BooleanAttributeType<>(attributeDef.getName());
             } else
             {
-                return new BooleanAttributeType<>(attributeDef.getName(), attributeDef.getTag());
+                return new BooleanAttributeType<>(attributeDef.getName(), Collections.singletonList(attributeDef.getTag()));
             }
         } else if (STRING_ATTRIBUTE_TYPES.contains(attributeDef.getType())){
             if (attributeDef.isGlobal()) {
                 return new StringAttributeType<>(attributeDef.getName());
             } else {
-                return new StringAttributeType<>(attributeDef.getName(), attributeDef.getTag());
+                return new StringAttributeType<>(attributeDef.getName(), Collections.singletonList(attributeDef.getTag()));
             }
         } else {
             System.out.println("Unhandled IDL datatype: " + attributeDef.getType());
@@ -201,8 +210,30 @@ public class Html5AttributeSpecTools {
                 String elementName = element.previousElementSibling().select("code").first().text();
                 Optional<String> idl = findIdl(element);
                 List<String> attributeNames = getAllowedAttributes(element);
-                return new RawTag(elementName, attributeNames, idl);
+                boolean closingTagRequired = getClosingTagRequired(element);
+                boolean childrenAllowed = getChildrenAllowed(element);
+                return new RawTag(elementName, attributeNames, idl, childrenAllowed, closingTagRequired);
             });
+    }
+
+    private static boolean getChildrenAllowed(Element element) {
+        return element.select("dt:contains(Content model)").stream()
+            .map(el -> el.nextElementSibling())
+            .filter(el -> el != null && el.tagName().equals("dd"))
+            .map(el -> new Boolean(! el.text().contains("Empty.")))
+            .findFirst()
+            .orElse(true);
+    }
+
+    // TODO we should identify the cases where the spec does not conform to our expectation
+    // and it doesn't have a dd, or the wrong dd or whatever.
+    private static boolean getClosingTagRequired(Element element) {
+        return element.select("dt:contains(Tag omission in text/html)").stream()
+            .map(el -> el.nextElementSibling())
+            .filter(el -> el != null && el.tagName().equals("dd"))
+            .map(el -> new Boolean(! el.text().contains("No end tag")))
+            .findFirst()
+            .orElse(true);
     }
 
     private static List<String> getAllowedAttributes(Element element) {
@@ -307,22 +338,33 @@ public class Html5AttributeSpecTools {
 
     public static class RawTag {
         private String tag;
-
-        private List<String> attributes;
-
+        private List<String> allowedAttributes;
+        private List<AttributeDef> attributes = new ArrayList<>();
         private Optional<String> idl;
+        private boolean childrenAllowed;
+        private boolean closingTagRequired;
 
-        public RawTag(String tag, List<String> attributes, Optional<String> idl) {
+        public RawTag(String tag, List<String> allowedAttributes, Optional<String> idl, boolean childrenAllowed, boolean closingTagRequired) {
             this.tag = tag;
-            this.attributes = attributes;
+            this.allowedAttributes = allowedAttributes;
             this.idl = idl;
+            this.childrenAllowed = childrenAllowed;
+            this.closingTagRequired = closingTagRequired;
+        }
+
+        public void addAllAttributes(List<AttributeDef> attributes) {
+            this.attributes.addAll(attributes);
         }
 
         public String getTag() {
             return tag;
         }
 
-        public List<String> getAttributes() {
+        public List<String> getAllowedAttributes() {
+            return allowedAttributes;
+        }
+
+        public List<AttributeDef> getAttributes() {
             return attributes;
         }
 
@@ -330,13 +372,31 @@ public class Html5AttributeSpecTools {
             return idl;
         }
 
+        public boolean isChildrenAllowed() {
+            return childrenAllowed;
+        }
+
+        public void setChildrenAllowed(boolean childrenAllowed) {
+            this.childrenAllowed = childrenAllowed;
+        }
+
+        public boolean isClosingTagRequired() {
+            return closingTagRequired;
+        }
+
+        public void setClosingTagRequired(boolean closingTagRequired) {
+            this.closingTagRequired = closingTagRequired;
+        }
+
         @Override
         public String toString() {
             return "RawTag{" +
-                    "tag='" + tag + '\'' +
-                    ", attributes=" + attributes +
-                    ", idl=" + idl +
-                    '}';
+                "tag='" + tag + '\'' +
+                ", allowedAttributes=" + allowedAttributes +
+                ", attributes=" + attributes +
+                ", childrenAllowed=" + childrenAllowed +
+                ", closingTagRequired=" + closingTagRequired +
+                '}';
         }
 
         //        public String toDeclaration() {

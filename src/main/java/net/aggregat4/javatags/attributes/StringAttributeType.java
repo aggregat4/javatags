@@ -1,15 +1,16 @@
 package net.aggregat4.javatags.attributes;
 
 import java.io.IOException;
-import java.util.Optional;
+import java.util.Collection;
 
 class StringAttributeType<ValueType extends String> extends DefaultAttributeType<ValueType> {
+
     public StringAttributeType(String name) {
         super(name);
     }
 
-    public StringAttributeType(String name, String tag) {
-        super(name, tag);
+    public StringAttributeType(String name, Collection<java.lang.String> tags) {
+        super(name, tags);
     }
 
     public void render(String value, Appendable appendable) throws IOException {

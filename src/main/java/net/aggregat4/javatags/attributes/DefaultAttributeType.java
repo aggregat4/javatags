@@ -1,5 +1,7 @@
 package net.aggregat4.javatags.attributes;
 
+import jdk.internal.org.objectweb.asm.tree.analysis.Value;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
@@ -9,6 +11,7 @@ abstract class DefaultAttributeType<ValueType> implements AttributeType<ValueTyp
     private String name;
     private boolean globalAttribute;
     private Collection<String> tags;
+//    private Class<ValueType> type;
 
     public DefaultAttributeType(String name) {
         this.name = Objects.requireNonNull(name);

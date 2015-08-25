@@ -11,6 +11,8 @@ public interface AttributeType<ValueType> {
 
     Collection<String> getTags();
 
+//    Class<ValueType> getType();
+
     void render(ValueType value, Appendable appendable) throws IOException;
 
 }

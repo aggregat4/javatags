@@ -1,6 +1,6 @@
 package net.aggregat4.javatags.attributes;
 
-import java.util.Optional;
+import java.util.Collection;
 
 /**
  * All possible HTML5 attribute type definitions (generated from the spec).
@@ -153,15 +153,15 @@ public final class Attributes {
     private static AttributeType<String> strAttr(String name) {
         return new StringAttributeType<>(name);
     }
-    private static AttributeType<String> strAttr(String name, String tag) {
-        return new StringAttributeType<>(name, tag);
+    private static AttributeType<String> strAttr(String name, Collection<String> tags) {
+        return new StringAttributeType<>(name, tags);
     }
 
     private static AttributeType<Boolean> boolAttr(String name) {
         return new BooleanAttributeType<>(name);
     }
-    private static AttributeType<Boolean> boolAttr(String name, String tag) {
-        return new BooleanAttributeType<>(name, tag);
+    private static AttributeType<Boolean> boolAttr(String name, Collection<String> tags) {
+        return new BooleanAttributeType<>(name, tags);
     }
 
     // helper for vararg construction
