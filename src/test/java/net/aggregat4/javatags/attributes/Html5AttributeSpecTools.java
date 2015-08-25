@@ -46,22 +46,14 @@ public class Html5AttributeSpecTools {
         globalAttributeDefList.stream().forEach(globalAttr -> System.out.println(globalAttr));
         elementAttributeDefList.stream().forEach(elementAttr -> System.out.println(elementAttr));
 
+        // TODO: before I can generate code from the AttributeDefs I need to merge them together based on type and the tags they can be used with
 
-        // todo: merge attributedefs (or should we merge attributetypes?)
+        Stream<String> stringAttributeDeclarations = stringDeclarations(globalAttributeDefList.stream());
+        String stringAttributeDeclarationBlock = String.join(",\n", stringAttributeDeclarations.sorted().collect(Collectors.toList()));
+        System.out.println(stringAttributeDeclarationBlock);
 
-        //List<AttributeType> mergedAttributes = merge(elementAttributes.collect(Collectors.toList()));
-//        System.out.println("element attributes: " + elementAttributes.collect(Collectors.toList()));
-//
-//        List<AttributeType> attributeTypes = Stream.concat(globalAttributes, elementAttributes).collect(Collectors.toList());
-//
-//        Stream<String> stringAttributeDeclarations = stringDeclarations(attributeTypes.stream());
-//        String stringAttributeDeclarationBlock = String.join(",\n", stringAttributeDeclarations.sorted().collect(Collectors.toList()));
-//
-//        Stream<String> booleanAttributeDeclarations = booleanDeclarations(attributeTypes.stream());
+//        Stream<String> booleanAttributeDeclarations = booleanDeclarations(globalAttributeDefList.stream());
 //        String booleanAttributeDeclarationBlock = String.join(",\n", booleanAttributeDeclarations.sorted().collect(Collectors.toList()));
-//
-//        System.out.println(stringAttributeDeclarationBlock);
-//        System.out.println(booleanAttributeDeclarationBlock);
 
     }
 
@@ -133,18 +125,18 @@ public class Html5AttributeSpecTools {
 //            return "stringAttr";
 //        }
 
-    private static String attrParamString(AttributeType at) {
-        if (at.isGlobalAttribute()) {
+    private static String attrParamString(AttributeDef at) {
+        if (at.isGlobal()) {
             return String.format("\"%s\"", at.getName());
         } else {
-            return String.format("\"%s\", \"%s\"", at.getName(), at.getTags());
+            return String.format("\"%s\", \"%s\"", at.getName(), at.getTag());
         }
     }
 
-    private static Stream<String> stringDeclarations(Stream<AttributeType> attributeTypes) {
-        return attributeTypes
-                .filter(at -> at instanceof StringAttributeType)
-            .map(at -> String.format("%s = strAttr(%s)", at.getName(), attrParamString(at)));
+    private static Stream<String> stringDeclarations(Stream<AttributeDef> attrs) {
+        return attrs
+            .filter(attr -> ! isBooleanType(attr))
+            .map(attr -> String.format("%s = strAttr(%s)", attr.getName(), attrParamString(attr)));
     }
 
     private static Stream<String> booleanDeclarations(Stream<AttributeType> attributeTypes) {
@@ -153,11 +145,11 @@ public class Html5AttributeSpecTools {
             .map(at -> String.format("%s = boolAttr(%s)", at.getName(), attrParamString(at)));
     }
 
-    private static Stream<AttributeType> toAttributeType(Stream<AttributeDef> attributeDefs) {
-        return attributeDefs
-            .map(Html5AttributeSpecTools::toAttributeType)
-            .filter(Objects::nonNull);
-    }
+//    private static Stream<AttributeType> toAttributeType(Stream<AttributeDef> attributeDefs) {
+//        return attributeDefs
+//            .map(Html5AttributeSpecTools::toAttributeType)
+//            .filter(Objects::nonNull);
+//    }
 
     /**
      * TODO Weird datatypes I need to check out:
@@ -175,23 +167,13 @@ public class Html5AttributeSpecTools {
         add("double");
     }};
 
-    private static AttributeType toAttributeType(AttributeDef attributeDef) {
+    private static boolean isBooleanType(AttributeDef attributeDef) {
         if (attributeDef.getType().equals("boolean")) {
-            if (attributeDef.isGlobal()) {
-                return new BooleanAttributeType<>(attributeDef.getName());
-            } else
-            {
-                return new BooleanAttributeType<>(attributeDef.getName(), Collections.singletonList(attributeDef.getTag()));
-            }
+            return true;
         } else if (STRING_ATTRIBUTE_TYPES.contains(attributeDef.getType())){
-            if (attributeDef.isGlobal()) {
-                return new StringAttributeType<>(attributeDef.getName());
-            } else {
-                return new StringAttributeType<>(attributeDef.getName(), Collections.singletonList(attributeDef.getTag()));
-            }
+            return false;
         } else {
-            System.out.println("Unhandled IDL datatype: " + attributeDef.getType());
-            return null;
+            throw new IllegalStateException("Unhandled IDL datatype: " + attributeDef.getType());
         }
     }
 

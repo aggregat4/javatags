@@ -59,7 +59,7 @@ public final class Attributes {
         high = strAttr("high"),
         href = strAttr("href"),
         hreflang = strAttr("hreflang"),
-        hspace = strAttr("hspace"),
+        hspace = strAttr("hspace", Arrays.asList("div", "span")),
         htmlFor = strAttr("htmlFor"),
         httpEquiv = strAttr("httpEquiv"),
         keytype = strAttr("keytype"),
