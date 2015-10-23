@@ -1,4 +1,4 @@
-package net.aggregat4.javatags.attributes;
+package net.aggregat4.javatags.content;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -15,6 +15,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Html5AttributeSpecTools {
+
+    private static final String NODE_INTERFACE_TEMPLATE = "public interface %sContent extends Node {}";
+    private static final String USABLE_ANYWHERE_TEMPLATE = "public interface UsableAnywhere extends %s {}";
+    private static final String CAN_HAVE_CHILDREN_TEMPLATE = "public interface CanHaveChildren extends %s {}";
 
     /**
      * TODO 20150803
@@ -39,22 +43,61 @@ public class Html5AttributeSpecTools {
         // tags now have all their normal attributes but need to get all the global attributes as well
         List<AttributeDef> globalAttributeDefList = globalAttributeDefs.collect(Collectors.toList());
         List<AttributeDef> elementAttributeDefList = elementAttributeDefs.collect(Collectors.toList());
-        Stream<RawTag> tagsWithGlobalAttributes = withGlobalAtributes(tags.stream(), globalAttributeDefList);
-//        System.out.println("tags: " + tagsWithGlobalAttributes.collect(Collectors.toList()));
-        tagsWithGlobalAttributes.forEach(rt -> System.out.println(rt));
+        List<RawTag> tagsWithGlobalAttributes =  withGlobalAtributes(tags.stream(), globalAttributeDefList).collect(Collectors.toList());
 
-        globalAttributeDefList.stream().forEach(globalAttr -> System.out.println(globalAttr));
-        elementAttributeDefList.stream().forEach(elementAttr -> System.out.println(elementAttr));
+//        tagsWithGlobalAttributes.forEach(rt -> System.out.println(rt));
+//
+//        globalAttributeDefList.stream().forEach(globalAttr -> System.out.println(globalAttr));
+//        elementAttributeDefList.stream().forEach(elementAttr -> System.out.println(elementAttr));
 
-        // TODO: before I can generate code from the AttributeDefs I need to merge them together based on type and the tags they can be used with
+        // TODO: before I can generate code from the AttributeDefs I need
+        // to merge them together based on type and the tags they can be used with
 
-        Stream<String> stringAttributeDeclarations = stringDeclarations(globalAttributeDefList.stream());
-        String stringAttributeDeclarationBlock = String.join(",\n", stringAttributeDeclarations.sorted().collect(Collectors.toList()));
-        System.out.println(stringAttributeDeclarationBlock);
+//        Stream<String> stringAttributeDeclarations = stringDeclarations(globalAttributeDefList.stream());
+//        String stringAttributeDeclarationBlock = String.join(",\n", stringAttributeDeclarations.sorted().collect(Collectors.toList()));
+//        System.out.println(stringAttributeDeclarationBlock);
 
 //        Stream<String> booleanAttributeDeclarations = booleanDeclarations(globalAttributeDefList.stream());
 //        String booleanAttributeDeclarationBlock = String.join(",\n", booleanAttributeDeclarations.sorted().collect(Collectors.toList()));
 
+        // TODO: write out all the tag-nodes (easy to generate names)
+        tagsWithGlobalAttributes.forEach(t ->
+            System.out.println(String.format(NODE_INTERFACE_TEMPLATE, toTagName(t))));
+
+        // TODO: generate the UsableAnywhere and UsableInNonEmptyTags interfaces based on the information of the RawTag.closing...
+
+        List<String> allNodeNames = tagsWithGlobalAttributes.stream()
+            .map(Html5AttributeSpecTools::toTagName).collect(Collectors.toList());
+        List<String> canHaveChildrenNodeNames = tagsWithGlobalAttributes.stream()
+            .filter(t -> t.childrenAllowed)
+            .map(Html5AttributeSpecTools::toTagName).collect(Collectors.toList());
+
+        System.out.println(String.format(USABLE_ANYWHERE_TEMPLATE, String.join(", ", allNodeNames)));
+        System.out.println(String.format(CAN_HAVE_CHILDREN_TEMPLATE, String.join(", ", canHaveChildrenNodeNames)));
+
+        // TODO: generate Attribute classes of attributes usable anywhere (global)
+
+
+        globalAttributeDefList.forEach(attr -> System.out.println(
+            String.format(
+                GLOBAL_ATTRIBUTE_TEMPLATE,
+                toAttributeClassName(attr.getName()),
+                attr.getName(),
+                // TODO: something that generates the type string for the class (AttributeType.STRING...)
+                // TODO: verify whether we need this in booleans at all, maybe need different template
+                )));
+
+        // TODO: non global attribute classes, here we need a grouped map of attributes by key so that we can
+        // generate one class for all attributes of the same name+type
+
+        // TODO: all the tag classes, trivial
+
+    }
+
+    private static String toTagName(RawTag rawTag) {
+        String tag = rawTag.getTag();
+        assert(tag.length() >= 1);
+        return Character.toUpperCase(tag.charAt(0)) + tag.substring(1);
     }
 
     private static Stream<RawTag> withGlobalAtributes(Stream<RawTag> tags, List<AttributeDef> globalAttributeDefs) {
@@ -139,11 +182,11 @@ public class Html5AttributeSpecTools {
             .map(attr -> String.format("%s = strAttr(%s)", attr.getName(), attrParamString(attr)));
     }
 
-    private static Stream<String> booleanDeclarations(Stream<AttributeType> attributeTypes) {
-        return attributeTypes
-                .filter(at -> at instanceof BooleanAttributeType)
-            .map(at -> String.format("%s = boolAttr(%s)", at.getName(), attrParamString(at)));
-    }
+//    private static Stream<String> booleanDeclarations(Stream<AttributeRenderer> attributeTypes) {
+//        return attributeTypes
+//                .filter(at -> at instanceof BooleanAttributeType)
+//            .map(at -> String.format("%s = boolAttr(%s)", at.getName(), attrParamString(at)));
+//    }
 
 //    private static Stream<AttributeType> toAttributeType(Stream<AttributeDef> attributeDefs) {
 //        return attributeDefs
@@ -210,7 +253,7 @@ public class Html5AttributeSpecTools {
     // TODO we should identify the cases where the spec does not conform to our expectation
     // and it doesn't have a dd, or the wrong dd or whatever.
     private static boolean getClosingTagRequired(Element element) {
-        return element.select("dt:contains(Tag omission in text/html)").stream()
+        return element.select("dt:contains(Tag omission in t/html)").stream()
             .map(el -> el.nextElementSibling())
             .filter(el -> el != null && el.tagName().equals("dd"))
             .map(el -> new Boolean(! el.text().contains("No end tag")))
@@ -265,6 +308,10 @@ public class Html5AttributeSpecTools {
 
         public boolean isGlobal() {
             return global;
+        }
+
+        public String getKey() {
+            return name + ":" + type;
         }
 
         @Override
